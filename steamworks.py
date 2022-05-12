@@ -1,11 +1,10 @@
-from sqlalchemy import null
 from steamworks import STEAMWORKS
 import steamworks
 import requests
 import json
 import subprocess
-import gc
-steamworks = STEAMWORKS(False)
+
+steamworks = STEAMWORKS()
 
 steamworks.initialize()
 
