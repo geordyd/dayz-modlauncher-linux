@@ -1,0 +1,28 @@
+body > #root > div {
+  height: 100vh;
+}
+
+.wrapper{
+  display: grid;
+  grid-template-areas: "menu browser"
+                       "menu console";
+  grid-template-columns: 300px 1fr;
+  grid-template-rows: 4fr 1fr;
+  border: 1px solid black;
+}
+
+.menu{
+  grid-area: menu;
+  border: 1px solid black;
+  height: 100%;
+}
+
+.browser{
+  grid-area: browser;
+  border: 1px solid black;
+}
+
+.console{
+  grid-area: console;
+  border: 1px solid black;
+}
