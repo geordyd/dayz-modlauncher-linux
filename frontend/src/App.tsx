@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import "./App.css";
 import Menu from "./components/Menu/Menu";
+import ServerInfo from "./components/ServerInfo/ServerInfo";
+
 function App() {
     const [searchValue, setSearchValue] = useState("");
     const [serverList, setServerList] = useState(Object);
@@ -19,8 +21,6 @@ function App() {
             .then((res) => res.json())
             .then((data) => {
                 setServerList(data);
-                console.log(data);
-                console.log(filter);
             });
     }, [filter]);
 
@@ -36,7 +36,7 @@ function App() {
             <div className="browser">
                 {serverList.data !== undefined &&
                     serverList["data"].map((data: any) => {
-                        return <div>{data["attributes"]["name"]}</div>;
+                        return <ServerInfo ServerData={data} />;
                     })}
             </div>
             <div className="console"></div>
