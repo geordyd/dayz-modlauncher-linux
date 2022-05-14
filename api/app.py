@@ -1,3 +1,5 @@
+from bs4 import BeautifulSoup
+import requests
 from steamworks import STEAMWORKS
 import steamworks
 import os
@@ -43,6 +45,19 @@ def UnsubscribeMod(modid):
     steamworks.Workshop.SetItemUnsubscribedCallback(UnsubscribeModItem)
     steamworks.Workshop.UnsubscribeItem(int(modid))
     return f"Unsubscribed from {modid}"
+
+
+@app.route("/getmodnamebyid/<modid>", methods=['GET'])
+def GetModNameById(modid):
+    res = requests.get(
+        f'https://steamcommunity.com/sharedfiles/filedetails/?id={modid}')
+    html = res.text
+
+    parsed_html = BeautifulSoup(html, 'html.parser')
+
+    title = parsed_html.find('div', attrs={'class': 'workshopItemTitle'}).text
+
+    return jsonify({"data": title})
 
 
 def SubscribeModItem(modid):

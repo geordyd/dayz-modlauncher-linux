@@ -10,6 +10,7 @@ function App() {
     const [filter, setFilter] = useState("");
     const [showInstalledMods, setShowInstalledMods] = useState(false);
     const [installedModsList, setInstalledModsList] = useState(Object);
+    const [modName, setModName] = useState("");
 
 
     useEffect(() => {
@@ -38,6 +39,19 @@ function App() {
         }
     }, [showInstalledMods]);
 
+    useEffect(() => {
+
+    }, []);
+    
+    // function GetModNameById(modId:string){
+    //     fetch(`/getmodnamebyid/${modId}`)
+    //         .then((res) => res.json())
+    //         .then((data) => {
+    //            setModName(data.data);
+    //            console.log(data.data);
+    //         });
+    // }
+
     return (
         <div className="wrapper">
             <div className="menu">
@@ -57,9 +71,9 @@ function App() {
                     })
                 ) : (
                     installedModsList.data !== undefined &&
-                    installedModsList["data"].map((data: any) => {
-                        return <ModInfo ModData={data} />;
-                    })
+                    installedModsList["data"].map((data: any) => 
+                         <ModInfo ModData={data}/>
+                    )
                 )}
             </div>
             <div className="console"></div>
