@@ -1,19 +1,36 @@
 from steamworks import STEAMWORKS
 import steamworks
-import requests
-import json
-import subprocess
+import os
 from flask import Flask
-from flask import request
+from flask import jsonify
 app = Flask(__name__)
 
 steamworks = STEAMWORKS()
 
 steamworks.initialize()
 
-@app.route("/")
-def hello():
-    return "Hello World!"
+
+@app.route("/getsubscribedmods", methods=['GET'])
+def GetSubscribedMods():
+    subscribedItems = steamworks.Workshop.GetSubscribedItems()
+    return jsonify({"data": list(subscribedItems)})
+
+
+@app.route("/getinstalledmods", methods=['GET'])
+def GetInstalledMods():
+    subscribedMod = steamworks.Workshop.GetSubscribedItems(1)
+    modInstallInfo = steamworks.Workshop.GetItemInstallInfo(subscribedMod[0])
+    installFolderMod = modInstallInfo['folder']
+    installFolderWithoutMod = installFolderMod.replace(
+        f"{subscribedMod[0]}", '')
+    folder = installFolderWithoutMod
+
+    subFolders = [name for name in os.listdir(
+        folder) if os.path.isdir(os.path.join(folder, name))]
+
+    return jsonify({"data": list(subFolders)})
+
+
 # def SubscribeItem(modID):
 #     steamworks.Workshop.SubscribeItem(modID)
 

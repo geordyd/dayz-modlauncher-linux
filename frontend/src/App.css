@@ -20,6 +20,7 @@ body > #root > div {
 .browser{
   grid-area: browser;
   border: 1px solid black;
+  overflow: auto;
 }
 
 .console{
