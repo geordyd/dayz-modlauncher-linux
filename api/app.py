@@ -55,10 +55,21 @@ def GetModNameById(modid):
 
     parsed_html = BeautifulSoup(html, 'html.parser')
 
-    title = parsed_html.find('div', attrs={'class': 'workshopItemTitle'}).text
+    modName = parsed_html.find('div', attrs={'class': 'workshopItemTitle'}).text
 
-    return jsonify({"data": title})
+    return jsonify({"data": modName})
 
+
+def GetInstalledModNamesById(modid):
+    res = requests.get(
+    f'https://steamcommunity.com/sharedfiles/filedetails/?id={modid}')
+    html = res.text
+
+    parsed_html = BeautifulSoup(html, 'html.parser')
+
+    modName = parsed_html.find('div', attrs={'class': 'workshopItemTitle'}).text
+
+    return modName
 
 def SubscribeModItem(modid):
     steamworks.Workshop.SubscribeItem(modid)

@@ -10,8 +10,6 @@ function App() {
     const [filter, setFilter] = useState("");
     const [showInstalledMods, setShowInstalledMods] = useState(false);
     const [installedModsList, setInstalledModsList] = useState(Object);
-    const [modName, setModName] = useState("");
-
 
     useEffect(() => {
         let value = filter;
@@ -29,28 +27,18 @@ function App() {
             });
     }, [filter]);
 
+
     useEffect(() => {
         if (showInstalledMods) {
+
             fetch("/getinstalledmods")
                 .then((res) => res.json())
                 .then((data) => {
                     setInstalledModsList(data);
                 });
+            
         }
     }, [showInstalledMods]);
-
-    useEffect(() => {
-
-    }, []);
-    
-    // function GetModNameById(modId:string){
-    //     fetch(`/getmodnamebyid/${modId}`)
-    //         .then((res) => res.json())
-    //         .then((data) => {
-    //            setModName(data.data);
-    //            console.log(data.data);
-    //         });
-    // }
 
     return (
         <div className="wrapper">
@@ -66,17 +54,21 @@ function App() {
             <div className="browser">
                 {!showInstalledMods ? (
                     serverList.data !== undefined &&
-                    serverList["data"].map((data: any) => {
+                    serverList.data.map((data: any) => {
                         return <ServerInfo ServerData={data} />;
                     })
                 ) : (
-                    installedModsList.data !== undefined &&
-                    installedModsList["data"].map((data: any) => 
-                         <ModInfo ModData={data}/>
+                    installedModsList.data !== undefined && 
+                    installedModsList.data.map((data: any) => 
+                        <ModInfo ModData={data} />
                     )
                 )}
+
+
             </div>
-            <div className="console"></div>
+            <div className="console">
+
+            </div>
         </div>
     );
 }
