@@ -23,6 +23,20 @@ const ServerInfo = (props: any) => {
         });
     }
 
+    const DisplayPlayCommand = () => {
+        let modList = "";
+
+        props.ServerData.attributes.details.modIds.forEach((modId: any) => {
+            modList += `${modId} `;
+        });
+
+        let playCommand = `steam -applaunch 221100 -connect=${props.ServerData.attributes.ip}:${props.ServerData.attributes.port} -nolauncher -world=empty name=Marco \\"-mod=${modList}\\"`;
+
+        props.setPlayCommand(playCommand)
+
+    }
+
+
     return (
         <div className="server-info">
             <div
@@ -59,7 +73,7 @@ const ServerInfo = (props: any) => {
             </div>
 
             <div className="play-button">
-                <button>Play</button>
+                <button onClick={() => DisplayPlayCommand()}>Play</button>
             </div>
         </div>
     );

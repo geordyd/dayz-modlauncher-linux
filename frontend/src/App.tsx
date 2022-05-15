@@ -10,6 +10,7 @@ function App() {
     const [filter, setFilter] = useState("");
     const [showInstalledMods, setShowInstalledMods] = useState(false);
     const [installedModsList, setInstalledModsList] = useState(Object);
+    const [playCommand, setPlayCommand] = useState("");
 
     useEffect(() => {
         let value = filter;
@@ -55,7 +56,7 @@ function App() {
                 {!showInstalledMods ? (
                     serverList.data !== undefined &&
                     serverList.data.map((data: any) => {
-                        return <ServerInfo ServerData={data} />;
+                        return <ServerInfo ServerData={data} setPlayCommand={setPlayCommand}/>;
                     })
                 ) : (
                     installedModsList.data !== undefined && 
@@ -64,10 +65,9 @@ function App() {
                     )
                 )}
 
-
             </div>
             <div className="console">
-
+                {playCommand !== "" && <div>{playCommand}</div>}
             </div>
         </div>
     );
