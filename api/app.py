@@ -1,10 +1,7 @@
 import shutil
-from tkinter import E
 from bs4 import BeautifulSoup
-from numpy import e
 import requests
 from steamworks import STEAMWORKS
-import steamworks
 import os
 from flask import Flask
 from flask import jsonify
