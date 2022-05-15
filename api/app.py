@@ -1,3 +1,4 @@
+import shutil
 from bs4 import BeautifulSoup
 import requests
 from steamworks import STEAMWORKS
@@ -58,6 +59,23 @@ def GetModNameById(modid):
     modName = parsed_html.find('div', attrs={'class': 'workshopItemTitle'}).text
 
     return jsonify({"data": modName})
+
+
+@app.route("/getmodstatebyid/<modid>", methods=['GET'])
+def GetModStatusById(modid):
+    modstate = steamworks.Workshop.GetItemInstallInfo(int(modid))
+    if modstate == {}:
+        return jsonify({"data": "Not installed"})
+    else:
+        return jsonify({"data": "Installed"})
+
+
+@app.route("/deletemodbyid/<modid>", methods=['GET'])
+def DeleteModById(modid):
+    modstate = steamworks.Workshop.GetItemInstallInfo(int(modid))
+    modfolder = modstate['folder'] 
+    shutil.rmtree(modfolder)
+    return f"{modid} deleted"
 
 
 def GetInstalledModNamesById(modid):
