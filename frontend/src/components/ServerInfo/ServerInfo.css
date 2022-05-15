@@ -1,4 +1,49 @@
-.server-info{
+.server-info {
     border: 1px solid black;
     padding: 10px 10px 10px 10px;
+    display: grid;
+    column-gap: 10px;
+    grid-template-columns: 10px auto auto 80px;
+    grid-template-rows: auto auto;
+    grid-template-areas:
+        "show-server-button servername subscribe-button play-button"
+        "show-server-button serverip unsubscribe-button play-button"
+        ". modlist . .";
+    
+}
+
+.show-server-button{
+    grid-area: show-server-button;
+    display: grid;
+    align-items: center;
+    cursor: pointer;
+}
+
+.server-name {
+    grid-area: servername;
+}
+
+.server-ip {
+    grid-area: serverip;
+}
+
+.modlist {
+    grid-area: modlist;
+}
+
+.subscribe-button {
+    grid-area: subscribe-button;
+    display: grid;
+    justify-content: right;
+}
+
+.unsubscribe-button {
+    grid-area: unsubscribe-button;
+    display: grid;
+    justify-content: right;
+}
+.play-button {
+    grid-area: play-button;
+    display: grid;
+    justify-content: right;
 }
