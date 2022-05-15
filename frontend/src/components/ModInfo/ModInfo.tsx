@@ -6,13 +6,11 @@ const ModInfo = (props: any) => {
     const [modName, setModName] = useState("Loading...");
 
     useEffect(() => {
-        if(modName === "Loading...") {
         fetch(`/getmodnamebyid/${props.ModData}`)
             .then((res) => res.json())
             .then((data) => {
                setModName(data.data);
             });
-        }
     });
 
     return (

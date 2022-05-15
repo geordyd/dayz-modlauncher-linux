@@ -1,5 +1,7 @@
 import shutil
+from tkinter import E
 from bs4 import BeautifulSoup
+from numpy import e
 import requests
 from steamworks import STEAMWORKS
 import steamworks
@@ -67,16 +69,30 @@ def GetModStatusById(modid):
     if modstate == {}:
         return jsonify({"data": "Not installed"})
     else:
-        return jsonify({"data": "Installed"})
+        if CheckIfFolderExists(modstate['folder']):
+            return jsonify({"data": "Installed"})
+        else:    
+            return jsonify({"data": "Not installed"})
 
 
 @app.route("/deletemodbyid/<modid>", methods=['GET'])
 def DeleteModById(modid):
     modstate = steamworks.Workshop.GetItemInstallInfo(int(modid))
-    modfolder = modstate['folder'] 
-    shutil.rmtree(modfolder)
-    return f"{modid} deleted"
+    if modstate != {}:
+        modfolder = modstate['folder'] 
+        try:
+            shutil.rmtree(modfolder)
+            return f"{modid} deleted"
+        except:
+            return f"{modid} does not exist"
+    
+    return f"{modid} does not exist"
 
+def CheckIfFolderExists(folderPath):
+    if os.path.exists(folderPath):
+        return True
+    else:
+        return False
 
 def GetInstalledModNamesById(modid):
     res = requests.get(

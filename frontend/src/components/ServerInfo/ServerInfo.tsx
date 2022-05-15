@@ -10,6 +10,19 @@ import ModEntry from "../ModEntry/ModEntry";
 const ServerInfo = (props: any) => {
     const [showServerMods, setShowServerMods] = useState(false);
 
+    const SubscribeToMods = () => {
+        props.ServerData.attributes.details.modIds.forEach((modId: any) => {
+            fetch(`/subscribemod/${modId}`);
+        });
+    }
+
+    const UnsubscribeFromMods = () => {
+        props.ServerData.attributes.details.modIds.forEach((modId: any) => {
+            fetch(`/unsubscribemod/${modId}`);
+            fetch(`/deletemodbyid/${modId}`)
+        });
+    }
+
     return (
         <div className="server-info">
             <div
@@ -23,14 +36,14 @@ const ServerInfo = (props: any) => {
                 )}
             </div>
             <div className="server-name">
-                Server name: {props.ServerData.attributes.name}
+                <b>Server name:</b> {props.ServerData.attributes.name}
             </div>
             <div className="server-ip">
-                Server ip: {props.ServerData.attributes.ip}
+                <b>Server ip:</b> {props.ServerData.attributes.ip}
             </div>
             {showServerMods && (
                 <div className="modlist">
-                    <p style={{ fontWeight: "bold" }}>Mod list: </p>
+                    <div style={{ fontWeight: "bold" }}>Mod list: </div>
                     {props.ServerData.attributes.details.modIds.map(
                         (modId: any) => {
                             return <ModEntry modId={modId} key={modId} />;
@@ -39,10 +52,10 @@ const ServerInfo = (props: any) => {
                 </div>
             )}
             <div className="subscribe-button">
-                <button>Subscribe to all server mods</button>
+                <button onClick={() => SubscribeToMods()}>Subscribe to all server mods</button>
             </div>
             <div className="unsubscribe-button">
-                <button>Unsubscribe and delete all server mods</button>
+                <button onClick={() => UnsubscribeFromMods()}>Unsubscribe and delete all server mods</button>
             </div>
 
             <div className="play-button">
