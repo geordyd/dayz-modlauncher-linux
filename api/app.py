@@ -17,7 +17,6 @@ def GetSubscribedMods():
     subscribedItems = steamworks.Workshop.GetSubscribedItems()
     return jsonify({"data": list(subscribedItems)})
 
-
 @app.route("/getinstalledmods", methods=['GET'])
 def GetInstalledMods():
     subscribedMod = steamworks.Workshop.GetSubscribedItems(1)
@@ -27,10 +26,32 @@ def GetInstalledMods():
         f"{subscribedMod[0]}", '')
     folder = installFolderWithoutMod
 
+ 
+    folders = [f.path for f in os.scandir(folder) if f.is_dir()]
+    modNames = []
+    for folderName in folders:
+        #get file by filename from folder
+        fileName = os.path.join(folderName, 'meta.cpp')
+        if os.path.exists(fileName):
+            #read the file
+            with open(fileName, 'r') as f:
+                for line in f:
+                    if 'name' in line:
+                        modName = line.split('"')[1]
+                        modNames.append(modName)
+                        break
+
     subFolders = [name for name in os.listdir(
         folder) if os.path.isdir(os.path.join(folder, name))]
 
-    return jsonify({"data": list(subFolders)})
+    modsInfo = []
+    for index, subFolder in enumerate(subFolders):
+        modInfo = {}
+        modInfo['name'] = modNames[index]
+        modInfo['id'] = subFolder
+        modsInfo.append(modInfo)
+
+    return jsonify({"data": list(modsInfo)})
 
 
 @app.route("/subscribemod/<modid>", methods=['GET'])
