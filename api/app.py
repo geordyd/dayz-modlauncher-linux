@@ -17,6 +17,7 @@ def GetSubscribedMods():
     subscribedItems = steamworks.Workshop.GetSubscribedItems()
     return jsonify({"data": list(subscribedItems)})
 
+
 @app.route("/getinstalledmods", methods=['GET'])
 def GetInstalledMods():
     subscribedMod = steamworks.Workshop.GetSubscribedItems(1)
@@ -26,14 +27,13 @@ def GetInstalledMods():
         f"{subscribedMod[0]}", '')
     folder = installFolderWithoutMod
 
- 
     folders = [f.path for f in os.scandir(folder) if f.is_dir()]
     modNames = []
     for folderName in folders:
-        #get file by filename from folder
+        # get file by filename from folder
         fileName = os.path.join(folderName, 'meta.cpp')
         if os.path.exists(fileName):
-            #read the file
+            # read the file
             with open(fileName, 'r') as f:
                 for line in f:
                     if 'name' in line:
@@ -76,7 +76,8 @@ def GetModNameById(modid):
 
     parsed_html = BeautifulSoup(html, 'html.parser')
 
-    modName = parsed_html.find('div', attrs={'class': 'workshopItemTitle'}).text
+    modName = parsed_html.find(
+        'div', attrs={'class': 'workshopItemTitle'}).text
 
     return jsonify({"data": modName})
 
@@ -89,7 +90,7 @@ def GetModStatusById(modid):
     else:
         if CheckIfFolderExists(modstate['folder']):
             return jsonify({"data": "Installed"})
-        else:    
+        else:
             return jsonify({"data": "Not installed"})
 
 
@@ -97,14 +98,15 @@ def GetModStatusById(modid):
 def DeleteModById(modid):
     modstate = steamworks.Workshop.GetItemInstallInfo(int(modid))
     if modstate != {}:
-        modfolder = modstate['folder'] 
+        modfolder = modstate['folder']
         try:
             shutil.rmtree(modfolder)
             return f"{modid} deleted"
         except:
             return f"{modid} does not exist"
-    
+
     return f"{modid} does not exist"
+
 
 def CheckIfFolderExists(folderPath):
     if os.path.exists(folderPath):
@@ -112,16 +114,19 @@ def CheckIfFolderExists(folderPath):
     else:
         return False
 
+
 def GetInstalledModNamesById(modid):
     res = requests.get(
-    f'https://steamcommunity.com/sharedfiles/filedetails/?id={modid}')
+        f'https://steamcommunity.com/sharedfiles/filedetails/?id={modid}')
     html = res.text
 
     parsed_html = BeautifulSoup(html, 'html.parser')
 
-    modName = parsed_html.find('div', attrs={'class': 'workshopItemTitle'}).text
+    modName = parsed_html.find(
+        'div', attrs={'class': 'workshopItemTitle'}).text
 
     return modName
+
 
 def SubscribeModItem(modid):
     steamworks.Workshop.SubscribeItem(modid)

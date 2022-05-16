@@ -61,7 +61,7 @@ function App() {
                 ) : (
                     installedModsList.data !== undefined && 
                     installedModsList.data.map((data: any) => 
-                        <ModInfo ModData={data} />
+                        <ModInfo ModData={data} setInstalledModsList={setInstalledModsList} />
                     )
                 )}
 
