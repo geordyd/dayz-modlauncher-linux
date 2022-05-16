@@ -1,8 +1,8 @@
 body > #root > div {
   height: 100vh;
 }
-
 .wrapper{
+  box-sizing: border-box;
   display: grid;
   grid-template-areas: "menu browser"
                        "menu console";
@@ -12,18 +12,25 @@ body > #root > div {
 }
 
 .menu{
+  box-sizing: border-box;
   grid-area: menu;
   border: 1px solid black;
   height: 100%;
+  overflow: hidden;
 }
 
 .browser{
+  box-sizing: border-box;
   grid-area: browser;
   border: 1px solid black;
   overflow: auto;
+  height: 100%;
 }
 
 .console{
+  box-sizing: border-box;
   grid-area: console;
   border: 1px solid black;
+  height: 100%;
+  overflow: hidden;
 }
