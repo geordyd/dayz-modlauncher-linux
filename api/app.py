@@ -107,6 +107,30 @@ def DeleteModById(modid):
 
     return f"{modid} does not exist"
 
+@app.route("/createsymlinks")
+def CreateSymLinks():
+    subscribedMod = steamworks.Workshop.GetSubscribedItems(1)
+    modInstallInfo = steamworks.Workshop.GetItemInstallInfo(subscribedMod[0])
+    installFolderMod = modInstallInfo['folder']
+    installFolderWithoutMod = installFolderMod.replace(
+        f"{subscribedMod[0]}", '')
+    folder = installFolderWithoutMod
+    
+    stringToRemove = 'workshop/content/221100/'
+    stringToAdd = 'common/DayZ/'
+    dayzFolder = folder.replace(stringToRemove, '')
+    dayzFolder += stringToAdd
+
+    folders = [f.path for f in os.scandir(folder) if f.is_dir()]
+
+    for folderName in folders:
+        modName = folderName.split('/')[-1]
+        try:
+            os.symlink(folderName, dayzFolder + f"@{modName}")
+        except:
+            print(f"Symlink of {modName} already exists")
+
+    return "Ok"
 
 def CheckIfFolderExists(folderPath):
     if os.path.exists(folderPath):

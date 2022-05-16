@@ -27,10 +27,10 @@ const ServerInfo = (props: any) => {
         let modList = "";
 
         props.ServerData.attributes.details.modIds.forEach((modId: any) => {
-            modList += `${modId} `;
+            modList += `@${modId};`;
         });
 
-        let playCommand = `steam -applaunch 221100 -connect=${props.ServerData.attributes.ip}:${props.ServerData.attributes.port} -nolauncher -world=empty name=Marco \\"-mod=${modList}\\"`;
+        let playCommand = `steam -applaunch 221100 -connect=${props.ServerData.attributes.ip}:${props.ServerData.attributes.port} -nolauncher -world=empty name=Marco "-mod=${modList}"`;
 
         props.setPlayCommand(playCommand)
 

@@ -13,6 +13,10 @@ function App() {
     const [playCommand, setPlayCommand] = useState("");
 
     useEffect(() => {
+        fetch("/createsymlinks")
+    })
+
+    useEffect(() => {
         let value = filter;
 
         if (value !== "") {
