@@ -32,5 +32,6 @@ body > #root > div {
   grid-area: console;
   border: 1px solid black;
   height: 100%;
-  overflow: hidden;
+  overflow: auto;
+  word-wrap: break-word
 }
