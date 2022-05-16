@@ -1,4 +1,3 @@
-import React, { useEffect, useState } from "react";
 import "./ModInfo.css";
 
 const ModInfo = (props: any) => {

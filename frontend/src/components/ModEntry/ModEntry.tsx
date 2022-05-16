@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import "./ModEntry.css";
 
 const ModEntry = (props: any) => {
-    const [modInstalled, setModInstalled] = useState(true);
+    const [modInstalled, setModInstalled] = useState(false);
 
     useEffect(() => {
         fetch(`/getmodstatebyid/${props.modId}`)
