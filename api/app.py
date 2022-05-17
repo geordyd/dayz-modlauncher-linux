@@ -5,12 +5,17 @@ from steamworks import STEAMWORKS
 import os
 from flask import Flask
 from flask import jsonify
+
 app = Flask(__name__)
 
 steamworks = STEAMWORKS()
 
 steamworks.initialize()
 
+
+@app.route( "/" )
+def hello():
+    return "Hello World! This is powered by a Python backend."
 
 @app.route("/getsubscribedmods", methods=['GET'])
 def GetSubscribedMods():
@@ -158,3 +163,8 @@ def SubscribeModItem(modid):
 
 def UnsubscribeModItem(modid):
     steamworks.Workshop.UnsubscribeItem(modid)
+
+if __name__ == "__main__":
+    print( "oh hello" )
+    #time.sleep(5)
+    app.run( host = "127.0.0.1", port = 5000 )

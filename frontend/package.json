@@ -15,6 +15,8 @@
     "react": "^18.1.0",
     "react-dom": "^18.1.0",
     "react-scripts": "^5.0.1",
+    "request": "^2.88.2",
+    "request-promise": "^4.2.6",
     "typescript": "^4.6.4",
     "web-vitals": "^2.1.4"
   },
@@ -32,6 +34,7 @@
     "react-test": "react-scripts test --env=jsdom",
     "react-eject": "react-scripts eject",
     "electron-build": "electron-builder",
+    "test123": "electron .",
     "release": "npm run build && electron-builder --linux --win --mac --x64 --ia32 --publish never",
     "build": "npm run react-build && npm run electron-build",
     "start": "concurrently -k \"cross-env BROWSER=none yarn react-start\" \"wait-on http://127.0.0.1:3000 && electron .\""
