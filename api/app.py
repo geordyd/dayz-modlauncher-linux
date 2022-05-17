@@ -101,6 +101,7 @@ def DeleteModById(modid):
         modfolder = modstate['folder']
         try:
             shutil.rmtree(modfolder)
+            RemoveSymlinkById(modid)
             return f"{modid} deleted"
         except:
             return f"{modid} does not exist"
@@ -150,6 +151,24 @@ def GetInstalledModNamesById(modid):
         'div', attrs={'class': 'workshopItemTitle'}).text
 
     return modName
+
+def RemoveSymlinkById(modid):
+    subscribedMod = steamworks.Workshop.GetSubscribedItems(1)
+    modInstallInfo = steamworks.Workshop.GetItemInstallInfo(subscribedMod[0])
+    installFolderMod = modInstallInfo['folder']
+    installFolderWithoutMod = installFolderMod.replace(
+        f"{subscribedMod[0]}", '')
+    folder = installFolderWithoutMod
+    
+    stringToRemove = 'workshop/content/221100/'
+    stringToAdd = 'common/DayZ/'
+    dayzFolder = folder.replace(stringToRemove, '')
+    dayzFolder += stringToAdd
+
+    try:
+        os.remove(dayzFolder + f"@{modid}")
+    except:
+        print(f"Symlink of {modid} does not exist")
 
 
 def SubscribeModItem(modid):

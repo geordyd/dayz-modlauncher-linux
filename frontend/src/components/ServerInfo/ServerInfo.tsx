@@ -14,16 +14,17 @@ const ServerInfo = (props: any) => {
         props.ServerData.attributes.details.modIds.forEach((modId: any) => {
             fetch(`/subscribemod/${modId}`);
         });
-    }
+    };
 
     const UnsubscribeFromMods = () => {
         props.ServerData.attributes.details.modIds.forEach((modId: any) => {
             fetch(`/unsubscribemod/${modId}`);
-            fetch(`/deletemodbyid/${modId}`)
+            fetch(`/deletemodbyid/${modId}`);
         });
-    }
+    };
 
     const DisplayPlayCommand = () => {
+        CreateSymlinks();
         let modList = "";
 
         props.ServerData.attributes.details.modIds.forEach((modId: any) => {
@@ -32,10 +33,12 @@ const ServerInfo = (props: any) => {
 
         let playCommand = `steam -applaunch 221100 -connect=${props.ServerData.attributes.ip}:${props.ServerData.attributes.port} -nolauncher -world=empty name=Marco "-mod=${modList}"`;
 
-        props.setPlayCommand(playCommand)
+        props.setPlayCommand(playCommand);
+    };
 
-    }
-
+    const CreateSymlinks = () => {
+        fetch(`/createsymlinks`);
+    };
 
     return (
         <div className="server-info">
@@ -66,10 +69,14 @@ const ServerInfo = (props: any) => {
                 </div>
             )}
             <div className="subscribe-button">
-                <button onClick={() => SubscribeToMods()}>Subscribe to all server mods</button>
+                <button onClick={() => SubscribeToMods()}>
+                    Subscribe to all server mods
+                </button>
             </div>
             <div className="unsubscribe-button">
-                <button onClick={() => UnsubscribeFromMods()}>Unsubscribe and delete all server mods</button>
+                <button onClick={() => UnsubscribeFromMods()}>
+                    Unsubscribe and delete all server mods
+                </button>
             </div>
 
             <div className="play-button">
