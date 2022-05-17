@@ -5,6 +5,8 @@ from steamworks import STEAMWORKS
 import os
 from flask import Flask
 from flask import jsonify
+from pathlib import Path
+
 app = Flask(__name__)
 
 steamworks = STEAMWORKS()
@@ -20,14 +22,10 @@ def GetSubscribedMods():
 
 @app.route("/getinstalledmods", methods=['GET'])
 def GetInstalledMods():
-    subscribedMod = steamworks.Workshop.GetSubscribedItems(1)
-    modInstallInfo = steamworks.Workshop.GetItemInstallInfo(subscribedMod[0])
-    installFolderMod = modInstallInfo['folder']
-    installFolderWithoutMod = installFolderMod.replace(
-        f"{subscribedMod[0]}", '')
-    folder = installFolderWithoutMod
+    homeDir = str(Path.home())
+    dayzModFolder = homeDir + '/.local/share/Steam/steamapps/workshop/content/221100/'
 
-    folders = [f.path for f in os.scandir(folder) if f.is_dir()]
+    folders = [f.path for f in os.scandir(dayzModFolder) if f.is_dir()]
     modNames = []
     for folderName in folders:
         # get file by filename from folder
@@ -42,7 +40,7 @@ def GetInstalledMods():
                         break
 
     subFolders = [name for name in os.listdir(
-        folder) if os.path.isdir(os.path.join(folder, name))]
+        dayzModFolder) if os.path.isdir(os.path.join(dayzModFolder, name))]
 
     modsInfo = []
     for index, subFolder in enumerate(subFolders):
@@ -110,19 +108,15 @@ def DeleteModById(modid):
 
 @app.route("/createsymlinks")
 def CreateSymLinks():
-    subscribedMod = steamworks.Workshop.GetSubscribedItems(1)
-    modInstallInfo = steamworks.Workshop.GetItemInstallInfo(subscribedMod[0])
-    installFolderMod = modInstallInfo['folder']
-    installFolderWithoutMod = installFolderMod.replace(
-        f"{subscribedMod[0]}", '')
-    folder = installFolderWithoutMod
+    homeDir = str(Path.home())
+    dayzModFolder = homeDir + '/.local/share/Steam/steamapps/workshop/content/221100/'
     
     stringToRemove = 'workshop/content/221100/'
     stringToAdd = 'common/DayZ/'
-    dayzFolder = folder.replace(stringToRemove, '')
+    dayzFolder = dayzModFolder.replace(stringToRemove, '')
     dayzFolder += stringToAdd
 
-    folders = [f.path for f in os.scandir(folder) if f.is_dir()]
+    folders = [f.path for f in os.scandir(dayzModFolder) if f.is_dir()]
 
     for folderName in folders:
         modName = folderName.split('/')[-1]
@@ -153,16 +147,12 @@ def GetInstalledModNamesById(modid):
     return modName
 
 def RemoveSymlinkById(modid):
-    subscribedMod = steamworks.Workshop.GetSubscribedItems(1)
-    modInstallInfo = steamworks.Workshop.GetItemInstallInfo(subscribedMod[0])
-    installFolderMod = modInstallInfo['folder']
-    installFolderWithoutMod = installFolderMod.replace(
-        f"{subscribedMod[0]}", '')
-    folder = installFolderWithoutMod
+    homeDir = str(Path.home())
+    dayzModFolder = homeDir + '/.local/share/Steam/steamapps/workshop/content/221100/'
     
     stringToRemove = 'workshop/content/221100/'
     stringToAdd = 'common/DayZ/'
-    dayzFolder = folder.replace(stringToRemove, '')
+    dayzFolder = dayzModFolder.replace(stringToRemove, '')
     dayzFolder += stringToAdd
 
     try:
