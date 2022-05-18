@@ -13,6 +13,7 @@ function App() {
     const [playCommand, setPlayCommand] = useState("");
 
     useEffect(() => {
+        fetch("/steamcmdinit")
         fetch("/createsymlinks")
     })
 
