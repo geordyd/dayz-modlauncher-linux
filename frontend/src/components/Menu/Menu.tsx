@@ -9,7 +9,7 @@ const Menu = (props:any) => {
       
     return (
         <div className="menu">
-            <button onClick={() => props.setShowInstalledMods(!props.showInstalledMods)}>Toggle show installed mods</button>
+            <button onClick={() => props.setShowInstalledMods(!props.showInstalledMods)}>Show installed mods</button>
             <h1>Filters</h1>
             <div></div>
             <h2>Search:</h2>

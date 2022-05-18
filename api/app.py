@@ -1,23 +1,23 @@
 import shutil
+import subprocess
+import tarfile
 from bs4 import BeautifulSoup
 import requests
-from steamworks import STEAMWORKS
 import os
-from flask import Flask
+from flask import Flask, request
 from flask import jsonify
 from pathlib import Path
 
 app = Flask(__name__)
 
-steamworks = STEAMWORKS()
 
-steamworks.initialize()
-
-
-@app.route("/getsubscribedmods", methods=['GET'])
-def GetSubscribedMods():
-    subscribedItems = steamworks.Workshop.GetSubscribedItems()
-    return jsonify({"data": list(subscribedItems)})
+@app.route('/steamcmdinit')
+def SteamCMDInit():
+    if (not SteamCMDInstalled()):
+        DownloadSteamCMD()
+        ExtractSteamCMD()
+        InstallSteamCMD()
+    return "Ok"
 
 
 @app.route("/getinstalledmods", methods=['GET'])
@@ -52,18 +52,40 @@ def GetInstalledMods():
     return jsonify({"data": list(modsInfo)})
 
 
-@app.route("/subscribemod/<modid>", methods=['GET'])
+@app.route("/installmods", methods=['GET', 'POST'])
+def InstallMods():
+    content = request.get_json()
+
+    installCommand = ""
+
+    for mod in content['data']:
+        installCommand += f"+workshop_download_item 221100 {mod} "
+
+    installCommand = installCommand[:-1]
+
+    homeFolder = str(Path.home())
+    steamCMDFolder = homeFolder + "/steamcmd/"
+    os.chdir(steamCMDFolder)
+    bashCmd = f"./steamcmd.sh +login anonymous {installCommand} +quit"
+    print(bashCmd)
+    process = subprocess.run(
+        bashCmd, capture_output=True, text=True, shell=True)
+    print(process.stdout)
+    print(process.stderr)
+    return jsonify({"data": "Mods installed"})
+
+
+@app.route("/installmod/<modid>", methods=['GET'])
 def SubscribeMod(modid):
-    steamworks.Workshop.SetItemSubscribedCallback(SubscribeModItem)
-    steamworks.Workshop.SubscribeItem(int(modid))
+    homeFolder = str(Path.home())
+    steamCMDFolder = homeFolder + "/steamcmd/"
+    os.chdir(steamCMDFolder)
+    bashCmd = ["./steamcmd.sh", "+login anonymous",
+               "+workshop_download_item 221100 " + modid, "+quit"]
+
+    process = subprocess.run(bashCmd, capture_output=True, text=True)
+
     return f"Subscribed to {modid}"
-
-
-@app.route("/unsubscribemod/<modid>", methods=['GET'])
-def UnsubscribeMod(modid):
-    steamworks.Workshop.SetItemUnsubscribedCallback(UnsubscribeModItem)
-    steamworks.Workshop.UnsubscribeItem(int(modid))
-    return f"Unsubscribed from {modid}"
 
 
 @app.route("/getmodnamebyid/<modid>", methods=['GET'])
@@ -82,35 +104,37 @@ def GetModNameById(modid):
 
 @app.route("/getmodstatebyid/<modid>", methods=['GET'])
 def GetModStatusById(modid):
-    modstate = steamworks.Workshop.GetItemInstallInfo(int(modid))
-    if modstate == {}:
+    homeDir = str(Path.home())
+    dayzModFolder = homeDir + '/.local/share/Steam/steamapps/workshop/content/221100/'
+    folderExists = False
+    for folderName in os.scandir(dayzModFolder):
+        if(folderName.name == modid):
+            folderExists = True
+            break
+
+    if not folderExists:
         return jsonify({"data": "Not installed"})
     else:
-        if CheckIfFolderExists(modstate['folder']):
-            return jsonify({"data": "Installed"})
-        else:
-            return jsonify({"data": "Not installed"})
+        return jsonify({"data": "Installed"})
 
 
 @app.route("/deletemodbyid/<modid>", methods=['GET'])
 def DeleteModById(modid):
-    modstate = steamworks.Workshop.GetItemInstallInfo(int(modid))
-    if modstate != {}:
-        modfolder = modstate['folder']
-        try:
-            shutil.rmtree(modfolder)
-            RemoveSymlinkById(modid)
-            return f"{modid} deleted"
-        except:
-            return f"{modid} does not exist"
-
+    homeDir = str(Path.home())
+    dayzModFolder = homeDir + '/.local/share/Steam/steamapps/workshop/content/221100/'
+    modfolder = dayzModFolder + f"{modid}/"
+    if CheckIfFolderExists(modfolder):
+        shutil.rmtree(modfolder)
+        RemoveSymlinkById(modid)
+        return f"{modid} deleted"
     return f"{modid} does not exist"
+
 
 @app.route("/createsymlinks")
 def CreateSymLinks():
     homeDir = str(Path.home())
     dayzModFolder = homeDir + '/.local/share/Steam/steamapps/workshop/content/221100/'
-    
+
     stringToRemove = 'workshop/content/221100/'
     stringToAdd = 'common/DayZ/'
     dayzFolder = dayzModFolder.replace(stringToRemove, '')
@@ -126,6 +150,7 @@ def CreateSymLinks():
             print(f"Symlink of {modName} already exists")
 
     return "Ok"
+
 
 def CheckIfFolderExists(folderPath):
     if os.path.exists(folderPath):
@@ -146,10 +171,11 @@ def GetInstalledModNamesById(modid):
 
     return modName
 
+
 def RemoveSymlinkById(modid):
     homeDir = str(Path.home())
     dayzModFolder = homeDir + '/.local/share/Steam/steamapps/workshop/content/221100/'
-    
+
     stringToRemove = 'workshop/content/221100/'
     stringToAdd = 'common/DayZ/'
     dayzFolder = dayzModFolder.replace(stringToRemove, '')
@@ -161,9 +187,29 @@ def RemoveSymlinkById(modid):
         print(f"Symlink of {modid} does not exist")
 
 
-def SubscribeModItem(modid):
-    steamworks.Workshop.SubscribeItem(modid)
+def DownloadSteamCMD():
+    homeFolder = str(Path.home())
+    steamCMDUrl = "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+    response = requests.get(steamCMDUrl)
+    open(homeFolder + "/steamcmd_linux.tar.gz", "wb").write(response.content)
 
 
-def UnsubscribeModItem(modid):
-    steamworks.Workshop.UnsubscribeItem(modid)
+def ExtractSteamCMD():
+    homeFolder = str(Path.home())
+    with tarfile.open("steamcmd_linux.tar.gz", 'r:gz') as f:
+        f.extractall(homeFolder + "/steamcmd")
+
+
+def InstallSteamCMD():
+    homeFolder = str(Path.home())
+    steamCMDFolder = homeFolder + "/steamcmd/"
+    os.chdir(steamCMDFolder)
+    bashCmd = ["./steamcmd.sh", "+quit"]
+
+    process = subprocess.run(bashCmd, capture_output=True, text=True)
+
+
+def SteamCMDInstalled():
+    homeFolder = str(Path.home())
+    steamCMDFolder = homeFolder + "/steamcmd/"
+    return CheckIfFolderExists(steamCMDFolder)
