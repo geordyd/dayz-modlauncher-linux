@@ -28,10 +28,8 @@ def GetInstalledMods():
     folders = [f.path for f in os.scandir(dayzModFolder) if f.is_dir()]
     modNames = []
     for folderName in folders:
-        # get file by filename from folder
         fileName = os.path.join(folderName, 'meta.cpp')
         if os.path.exists(fileName):
-            # read the file
             with open(fileName, 'r') as f:
                 for line in f:
                     if 'name' in line:
@@ -196,7 +194,7 @@ def DownloadSteamCMD():
 
 def ExtractSteamCMD():
     homeFolder = str(Path.home())
-    with tarfile.open("steamcmd_linux.tar.gz", 'r:gz') as f:
+    with tarfile.open(homeFolder + "/steamcmd_linux.tar.gz", 'r:gz') as f:
         f.extractall(homeFolder + "/steamcmd")
 
 
