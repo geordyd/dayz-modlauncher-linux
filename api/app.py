@@ -36,6 +36,8 @@ def GetInstalledMods():
                         modName = line.split('"')[1]
                         modNames.append(modName)
                         break
+        else:
+            modNames.append("Name not available")
 
     subFolders = [name for name in os.listdir(
         dayzModFolder) if os.path.isdir(os.path.join(dayzModFolder, name))]
@@ -211,3 +213,7 @@ def SteamCMDInstalled():
     homeFolder = str(Path.home())
     steamCMDFolder = homeFolder + "/steamcmd/"
     return CheckIfFolderExists(steamCMDFolder)
+
+
+if __name__ == "__main__":
+    app.run(host="127.0.0.1", port=5000)
