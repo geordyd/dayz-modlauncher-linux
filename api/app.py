@@ -56,22 +56,28 @@ def GetInstalledMods():
 def InstallMods():
     content = request.get_json()
 
-    installCommand = ""
+    installCommand = []
 
     for mod in content['data']:
-        installCommand += f"+workshop_download_item 221100 {mod} "
-
-    installCommand = installCommand[:-1]
+        installCommand.append(f"+workshop_download_item 221100 {mod}")
 
     homeFolder = str(Path.home())
     steamCMDFolder = homeFolder + "/steamcmd/"
     os.chdir(steamCMDFolder)
-    bashCmd = f"./steamcmd.sh +login anonymous {installCommand} +quit"
+    bashCmd = ["./steamcmd.sh", "+login anonymous"]
+    
+    for command in installCommand:
+        bashCmd.append(command)
+    
+    bashCmd.append("+quit")
+
     print(bashCmd)
-    process = subprocess.run(
-        bashCmd, capture_output=True, text=True, shell=True)
-    print(process.stdout)
-    print(process.stderr)
+
+    process = subprocess.Popen(bashCmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+
+    for line in iter(process.stdout.readline, b''):
+        print(">>> " + str(line.rstrip()))
+
     return jsonify({"data": "Mods installed"})
 
 
