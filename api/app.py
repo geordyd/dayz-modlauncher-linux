@@ -1,6 +1,5 @@
 import shutil
 import subprocess
-import tarfile
 from bs4 import BeautifulSoup
 import requests
 import os
