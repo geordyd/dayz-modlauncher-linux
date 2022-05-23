@@ -25,7 +25,7 @@ function App() {
         }
 
         fetch(
-            `https://api.battlemetrics.com/servers?filter[game]=dayz&filter[search]=${value}`
+            `https://api.battlemetrics.com/servers?filter[game]=dayz&filter[search]=${value}&page[size]=20`
         )
             .then((res) => res.json())
             .then((data) => {
