@@ -13,9 +13,9 @@ function App() {
     const [playCommand, setPlayCommand] = useState("");
 
     useEffect(() => {
-        fetch("/steamcmdinit")
-        fetch("/createsymlinks")
-    })
+        fetch("/steamcmdinit");
+        fetch("/createsymlinks");
+    });
 
     useEffect(() => {
         let value = filter;
@@ -33,16 +33,13 @@ function App() {
             });
     }, [filter]);
 
-
     useEffect(() => {
         if (showInstalledMods) {
-
             fetch("/getinstalledmods")
                 .then((res) => res.json())
                 .then((data) => {
                     setInstalledModsList(data);
                 });
-            
         }
     }, [showInstalledMods]);
 
@@ -58,18 +55,23 @@ function App() {
                 />
             </div>
             <div className="browser">
-                {!showInstalledMods ? (
-                    serverList.data !== undefined &&
-                    serverList.data.map((data: any) => {
-                        return <ServerInfo ServerData={data} setPlayCommand={setPlayCommand}/>;
-                    })
-                ) : (
-                    installedModsList.data !== undefined && 
-                    installedModsList.data.map((data: any) => 
-                        <ModInfo ModData={data} setInstalledModsList={setInstalledModsList} />
-                    )
-                )}
-
+                {!showInstalledMods
+                    ? serverList.data !== undefined &&
+                      serverList.data.map((data: any) => {
+                          return (
+                              <ServerInfo
+                                  ServerData={data}
+                                  setPlayCommand={setPlayCommand}
+                              />
+                          );
+                      })
+                    : installedModsList.data !== undefined &&
+                      installedModsList.data.map((data: any) => (
+                          <ModInfo
+                              ModData={data}
+                              setInstalledModsList={setInstalledModsList}
+                          />
+                      ))}
             </div>
             <div className="console">
                 {playCommand !== "" && <div>{playCommand}</div>}

@@ -7,16 +7,16 @@ import os
 from flask import Flask, request
 from flask import jsonify
 from pathlib import Path
+from steamCMD import SteamCMD
+
+steamCMD = SteamCMD()
 
 app = Flask(__name__)
 
 
 @app.route('/steamcmdinit')
 def SteamCMDInit():
-    if (not SteamCMDInstalled()):
-        DownloadSteamCMD()
-        ExtractSteamCMD()
-        InstallSteamCMD()
+    steamCMD.Init()
     return "Ok"
 
 
@@ -65,15 +65,16 @@ def InstallMods():
     steamCMDFolder = homeFolder + "/steamcmd/"
     os.chdir(steamCMDFolder)
     bashCmd = ["./steamcmd.sh", "+login anonymous"]
-    
+
     for command in installCommand:
         bashCmd.append(command)
-    
+
     bashCmd.append("+quit")
 
     print(bashCmd)
 
-    process = subprocess.Popen(bashCmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    process = subprocess.Popen(
+        bashCmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
     for line in iter(process.stdout.readline, b''):
         print(">>> " + str(line.rstrip()))
@@ -191,35 +192,6 @@ def RemoveSymlinkById(modid):
         os.remove(dayzFolder + f"@{modid}")
     except:
         print(f"Symlink of {modid} does not exist")
-
-
-def DownloadSteamCMD():
-    homeFolder = str(Path.home())
-    steamCMDUrl = "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
-    response = requests.get(steamCMDUrl)
-    open(homeFolder + "/steamcmd_linux.tar.gz", "wb").write(response.content)
-
-
-def ExtractSteamCMD():
-    homeFolder = str(Path.home())
-    with tarfile.open(homeFolder + "/steamcmd_linux.tar.gz", 'r:gz') as f:
-        f.extractall(homeFolder + "/steamcmd")
-
-
-def InstallSteamCMD():
-    homeFolder = str(Path.home())
-    steamCMDFolder = homeFolder + "/steamcmd/"
-    os.chdir(steamCMDFolder)
-    bashCmd = ["./steamcmd.sh", "+quit"]
-
-    process = subprocess.run(bashCmd, capture_output=True, text=True)
-
-
-def SteamCMDInstalled():
-    homeFolder = str(Path.home())
-    steamCMDFolder = homeFolder + "/steamcmd/"
-    return CheckIfFolderExists(steamCMDFolder)
-
 
 if __name__ == "__main__":
     app.run(host="127.0.0.1", port=5000)
