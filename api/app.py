@@ -3,8 +3,7 @@ import subprocess
 from bs4 import BeautifulSoup
 import requests
 import os
-from flask import Flask, request
-from flask import jsonify
+from flask import Flask, request, jsonify
 from pathlib import Path
 from steamCMD import SteamCMD
 
@@ -12,19 +11,32 @@ steamCMD = SteamCMD()
 
 app = Flask(__name__)
 
+dayzDir = ""
+
+dayzModDir = ""
+
 
 @app.route('/steamcmdinit')
 def SteamCMDInit():
     steamCMD.Init()
+
+    global dayzDir
+    global dayzModDir
+
+    if dayzDir == "" or dayzModDir == "":
+        dayzDir = SteamCMD.GetDayzDir()
+        dayzModDir = dayzDir.removesuffix(
+            'common/DayZ') + "workshop/content/221100/"
+
     return "Ok"
 
 
 @app.route("/getinstalledmods", methods=['GET'])
 def GetInstalledMods():
-    homeDir = str(Path.home())
-    dayzModFolder = homeDir + '/.local/share/Steam/steamapps/workshop/content/221100/'
 
-    folders = [f.path for f in os.scandir(dayzModFolder) if f.is_dir()]
+    global dayzModDir
+
+    folders = [f.path for f in os.scandir(dayzModDir) if f.is_dir()]
     modNames = []
     for folderName in folders:
         fileName = os.path.join(folderName, 'meta.cpp')
@@ -39,7 +51,7 @@ def GetInstalledMods():
             modNames.append("Name not available")
 
     subFolders = [name for name in os.listdir(
-        dayzModFolder) if os.path.isdir(os.path.join(dayzModFolder, name))]
+        dayzModDir) if os.path.isdir(os.path.join(dayzModDir, name))]
 
     modsInfo = []
     for index, subFolder in enumerate(subFolders):
@@ -110,10 +122,11 @@ def GetModNameById(modid):
 
 @app.route("/getmodstatebyid/<modid>", methods=['GET'])
 def GetModStatusById(modid):
-    homeDir = str(Path.home())
-    dayzModFolder = homeDir + '/.local/share/Steam/steamapps/workshop/content/221100/'
+
+    global dayzModDir
+
     folderExists = False
-    for folderName in os.scandir(dayzModFolder):
+    for folderName in os.scandir(dayzModDir):
         if(folderName.name == modid):
             folderExists = True
             break
@@ -126,9 +139,10 @@ def GetModStatusById(modid):
 
 @app.route("/deletemodbyid/<modid>", methods=['GET'])
 def DeleteModById(modid):
-    homeDir = str(Path.home())
-    dayzModFolder = homeDir + '/.local/share/Steam/steamapps/workshop/content/221100/'
-    modfolder = dayzModFolder + f"{modid}/"
+
+    global dayzModDir
+
+    modfolder = dayzModDir + f"{modid}/"
     if CheckIfFolderExists(modfolder):
         shutil.rmtree(modfolder)
         RemoveSymlinkById(modid)
@@ -138,22 +152,17 @@ def DeleteModById(modid):
 
 @app.route("/createsymlinks")
 def CreateSymLinks():
-    homeDir = str(Path.home())
-    dayzModFolder = homeDir + '/.local/share/Steam/steamapps/workshop/content/221100/'
 
-    stringToRemove = 'workshop/content/221100/'
-    stringToAdd = 'common/DayZ/'
-    dayzFolder = dayzModFolder.replace(stringToRemove, '')
-    dayzFolder += stringToAdd
+    global dayzDir
 
-    folders = [f.path for f in os.scandir(dayzModFolder) if f.is_dir()]
+    folders = [f.path for f in os.scandir(dayzModDir) if f.is_dir()]
 
     for folderName in folders:
         modName = folderName.split('/')[-1]
         try:
-            os.symlink(folderName, dayzFolder + f"@{modName}")
+            os.symlink(folderName, dayzDir + f"@{modName}")
         except:
-            print(f"Symlink of {modName} already exists")
+            continue
 
     return "Ok"
 
@@ -179,18 +188,13 @@ def GetInstalledModNamesById(modid):
 
 
 def RemoveSymlinkById(modid):
-    homeDir = str(Path.home())
-    dayzModFolder = homeDir + '/.local/share/Steam/steamapps/workshop/content/221100/'
-
-    stringToRemove = 'workshop/content/221100/'
-    stringToAdd = 'common/DayZ/'
-    dayzFolder = dayzModFolder.replace(stringToRemove, '')
-    dayzFolder += stringToAdd
+    global dayzDir
 
     try:
-        os.remove(dayzFolder + f"@{modid}")
+        os.remove(dayzDir + f"@{modid}")
     except:
         print(f"Symlink of {modid} does not exist")
+
 
 if __name__ == "__main__":
     app.run(host="127.0.0.1", port=5000)

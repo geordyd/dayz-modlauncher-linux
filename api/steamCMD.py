@@ -41,3 +41,21 @@ class SteamCMD:
             return True
         else:
             return False
+
+    def GetDayzDir():
+        homeFolder = str(Path.home())
+        steamCMDFolder = homeFolder + "/steamcmd/"
+        
+        os.chdir(steamCMDFolder)
+        bashCmd = ["./steamcmd.sh", "+login anonymous", "+app_status 221100", "+quit"]
+
+        process = subprocess.Popen(
+            bashCmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+
+        dayzDir = ""
+
+        for line in iter(process.stdout.readline, b''):
+            if "install dir" in str(line.rstrip()):
+                dayzDir = str(line.rstrip()).split('"')[1]
+
+        return dayzDir
