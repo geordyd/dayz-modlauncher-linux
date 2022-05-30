@@ -1,0 +1,61 @@
+import os
+from pathlib import Path
+import subprocess
+import tarfile
+import requests
+
+
+class SteamCMD:
+    def Init(self):
+        if not self.IsInstalled():
+            self.Download()
+            self.Extract()
+            self.Install()
+
+    def Download(self):
+        homeFolder = str(Path.home())
+        steamCMDUrl = "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+        response = requests.get(steamCMDUrl)
+        open(homeFolder + "/steamcmd_linux.tar.gz", "wb").write(response.content)
+
+    def Extract(self):
+        homeFolder = str(Path.home())
+        with tarfile.open(homeFolder + "/steamcmd_linux.tar.gz", 'r:gz') as f:
+            f.extractall(homeFolder + "/steamcmd")
+
+    def Install(self):
+        homeFolder = str(Path.home())
+        steamCMDFolder = homeFolder + "/steamcmd/"
+        os.chdir(steamCMDFolder)
+        bashCmd = ["./steamcmd.sh", "+quit"]
+
+        process = subprocess.run(bashCmd, capture_output=True, text=True)
+
+    def IsInstalled(self):
+        homeFolder = str(Path.home())
+        steamCMDFolder = homeFolder + "/steamcmd/"
+        return self.CheckIfFolderExists(steamCMDFolder)
+
+    def CheckIfFolderExists(self, folderPath):
+        if os.path.exists(folderPath):
+            return True
+        else:
+            return False
+
+    def GetDayzDir():
+        homeFolder = str(Path.home())
+        steamCMDFolder = homeFolder + "/steamcmd/"
+        
+        os.chdir(steamCMDFolder)
+        bashCmd = ["./steamcmd.sh", "+login anonymous", "+app_status 221100", "+quit"]
+
+        process = subprocess.Popen(
+            bashCmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+
+        dayzDir = ""
+
+        for line in iter(process.stdout.readline, b''):
+            if "install dir" in str(line.rstrip()):
+                dayzDir = str(line.rstrip()).split('"')[1]
+
+        return dayzDir

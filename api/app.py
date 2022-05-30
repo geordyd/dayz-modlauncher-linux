@@ -1,53 +1,57 @@
 import shutil
+import subprocess
 from bs4 import BeautifulSoup
 import requests
-from steamworks import STEAMWORKS
 import os
-from flask import Flask
-from flask import jsonify
+from flask import Flask, request, jsonify
+from pathlib import Path
+from steamCMD import SteamCMD
+
+steamCMD = SteamCMD()
 
 app = Flask(__name__)
 
-steamworks = STEAMWORKS()
+dayzDir = ""
 
-steamworks.initialize()
+dayzModDir = ""
 
 
-@app.route( "/" )
-def hello():
-    return "Hello World! This is powered by a Python backend."
+@app.route('/steamcmdinit')
+def SteamCMDInit():
+    steamCMD.Init()
 
-@app.route("/getsubscribedmods", methods=['GET'])
-def GetSubscribedMods():
-    subscribedItems = steamworks.Workshop.GetSubscribedItems()
-    return jsonify({"data": list(subscribedItems)})
+    global dayzDir
+    global dayzModDir
+
+    if dayzDir == "" or dayzModDir == "":
+        dayzDir = SteamCMD.GetDayzDir()
+        dayzModDir = dayzDir.removesuffix(
+            'common/DayZ') + "workshop/content/221100/"
+
+    return "Ok"
 
 
 @app.route("/getinstalledmods", methods=['GET'])
 def GetInstalledMods():
-    subscribedMod = steamworks.Workshop.GetSubscribedItems(1)
-    modInstallInfo = steamworks.Workshop.GetItemInstallInfo(subscribedMod[0])
-    installFolderMod = modInstallInfo['folder']
-    installFolderWithoutMod = installFolderMod.replace(
-        f"{subscribedMod[0]}", '')
-    folder = installFolderWithoutMod
 
-    folders = [f.path for f in os.scandir(folder) if f.is_dir()]
+    global dayzModDir
+
+    folders = [f.path for f in os.scandir(dayzModDir) if f.is_dir()]
     modNames = []
     for folderName in folders:
-        # get file by filename from folder
         fileName = os.path.join(folderName, 'meta.cpp')
         if os.path.exists(fileName):
-            # read the file
             with open(fileName, 'r') as f:
                 for line in f:
                     if 'name' in line:
                         modName = line.split('"')[1]
                         modNames.append(modName)
                         break
+        else:
+            modNames.append("Name not available")
 
     subFolders = [name for name in os.listdir(
-        folder) if os.path.isdir(os.path.join(folder, name))]
+        dayzModDir) if os.path.isdir(os.path.join(dayzModDir, name))]
 
     modsInfo = []
     for index, subFolder in enumerate(subFolders):
@@ -59,18 +63,47 @@ def GetInstalledMods():
     return jsonify({"data": list(modsInfo)})
 
 
-@app.route("/subscribemod/<modid>", methods=['GET'])
+@app.route("/installmods", methods=['GET', 'POST'])
+def InstallMods():
+    content = request.get_json()
+
+    installCommand = []
+
+    for mod in content['data']:
+        installCommand.append(f"+workshop_download_item 221100 {mod}")
+
+    homeFolder = str(Path.home())
+    steamCMDFolder = homeFolder + "/steamcmd/"
+    os.chdir(steamCMDFolder)
+    bashCmd = ["./steamcmd.sh", "+login anonymous"]
+
+    for command in installCommand:
+        bashCmd.append(command)
+
+    bashCmd.append("+quit")
+
+    print(bashCmd)
+
+    process = subprocess.Popen(
+        bashCmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+
+    for line in iter(process.stdout.readline, b''):
+        print(">>> " + str(line.rstrip()))
+
+    return jsonify({"data": "Mods installed"})
+
+
+@app.route("/installmod/<modid>", methods=['GET'])
 def SubscribeMod(modid):
-    steamworks.Workshop.SetItemSubscribedCallback(SubscribeModItem)
-    steamworks.Workshop.SubscribeItem(int(modid))
+    homeFolder = str(Path.home())
+    steamCMDFolder = homeFolder + "/steamcmd/"
+    os.chdir(steamCMDFolder)
+    bashCmd = ["./steamcmd.sh", "+login anonymous",
+               "+workshop_download_item 221100 " + modid, "+quit"]
+
+    process = subprocess.run(bashCmd, capture_output=True, text=True)
+
     return f"Subscribed to {modid}"
-
-
-@app.route("/unsubscribemod/<modid>", methods=['GET'])
-def UnsubscribeMod(modid):
-    steamworks.Workshop.SetItemUnsubscribedCallback(UnsubscribeModItem)
-    steamworks.Workshop.UnsubscribeItem(int(modid))
-    return f"Unsubscribed from {modid}"
 
 
 @app.route("/getmodnamebyid/<modid>", methods=['GET'])
@@ -89,53 +122,50 @@ def GetModNameById(modid):
 
 @app.route("/getmodstatebyid/<modid>", methods=['GET'])
 def GetModStatusById(modid):
-    modstate = steamworks.Workshop.GetItemInstallInfo(int(modid))
-    if modstate == {}:
+
+    global dayzModDir
+
+    folderExists = False
+    for folderName in os.scandir(dayzModDir):
+        if(folderName.name == modid):
+            folderExists = True
+            break
+
+    if not folderExists:
         return jsonify({"data": "Not installed"})
     else:
-        if CheckIfFolderExists(modstate['folder']):
-            return jsonify({"data": "Installed"})
-        else:
-            return jsonify({"data": "Not installed"})
+        return jsonify({"data": "Installed"})
 
 
 @app.route("/deletemodbyid/<modid>", methods=['GET'])
 def DeleteModById(modid):
-    modstate = steamworks.Workshop.GetItemInstallInfo(int(modid))
-    if modstate != {}:
-        modfolder = modstate['folder']
-        try:
-            shutil.rmtree(modfolder)
-            return f"{modid} deleted"
-        except:
-            return f"{modid} does not exist"
 
+    global dayzModDir
+
+    modfolder = dayzModDir + f"{modid}/"
+    if CheckIfFolderExists(modfolder):
+        shutil.rmtree(modfolder)
+        RemoveSymlinkById(modid)
+        return f"{modid} deleted"
     return f"{modid} does not exist"
+
 
 @app.route("/createsymlinks")
 def CreateSymLinks():
-    subscribedMod = steamworks.Workshop.GetSubscribedItems(1)
-    modInstallInfo = steamworks.Workshop.GetItemInstallInfo(subscribedMod[0])
-    installFolderMod = modInstallInfo['folder']
-    installFolderWithoutMod = installFolderMod.replace(
-        f"{subscribedMod[0]}", '')
-    folder = installFolderWithoutMod
-    
-    stringToRemove = 'workshop/content/221100/'
-    stringToAdd = 'common/DayZ/'
-    dayzFolder = folder.replace(stringToRemove, '')
-    dayzFolder += stringToAdd
 
-    folders = [f.path for f in os.scandir(folder) if f.is_dir()]
+    global dayzDir
+
+    folders = [f.path for f in os.scandir(dayzModDir) if f.is_dir()]
 
     for folderName in folders:
         modName = folderName.split('/')[-1]
         try:
-            os.symlink(folderName, dayzFolder + f"@{modName}")
+            os.symlink(folderName, dayzDir + f"@{modName}")
         except:
-            print(f"Symlink of {modName} already exists")
+            continue
 
     return "Ok"
+
 
 def CheckIfFolderExists(folderPath):
     if os.path.exists(folderPath):
@@ -157,14 +187,14 @@ def GetInstalledModNamesById(modid):
     return modName
 
 
-def SubscribeModItem(modid):
-    steamworks.Workshop.SubscribeItem(modid)
+def RemoveSymlinkById(modid):
+    global dayzDir
 
+    try:
+        os.remove(dayzDir + f"@{modid}")
+    except:
+        print(f"Symlink of {modid} does not exist")
 
-def UnsubscribeModItem(modid):
-    steamworks.Workshop.UnsubscribeItem(modid)
 
 if __name__ == "__main__":
-    print( "oh hello" )
-    #time.sleep(5)
-    app.run( host = "127.0.0.1", port = 5000 )
+    app.run(host="127.0.0.1", port=5000)

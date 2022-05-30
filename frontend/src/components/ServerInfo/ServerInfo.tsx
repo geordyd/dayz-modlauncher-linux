@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import "./ServerInfo.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -10,20 +10,25 @@ import ModEntry from "../ModEntry/ModEntry";
 const ServerInfo = (props: any) => {
     const [showServerMods, setShowServerMods] = useState(false);
 
-    const SubscribeToMods = () => {
-        props.ServerData.attributes.details.modIds.forEach((modId: any) => {
-            fetch(`/subscribemod/${modId}`);
-        });
-    }
+    const InstallMods = () => {
+        fetch(`/installmods`, {
+            method: "POST",
+            headers: {
+                'Accept': 'application/json',
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({data: props.ServerData.attributes.details.modIds}),
+        })
+    };
 
-    const UnsubscribeFromMods = () => {
+    const DeleteMods = () => {
         props.ServerData.attributes.details.modIds.forEach((modId: any) => {
-            fetch(`/unsubscribemod/${modId}`);
-            fetch(`/deletemodbyid/${modId}`)
+            fetch(`/deletemodbyid/${modId}`);
         });
-    }
+    };
 
     const DisplayPlayCommand = () => {
+        CreateSymlinks();
         let modList = "";
 
         props.ServerData.attributes.details.modIds.forEach((modId: any) => {
@@ -32,10 +37,12 @@ const ServerInfo = (props: any) => {
 
         let playCommand = `steam -applaunch 221100 -connect=${props.ServerData.attributes.ip}:${props.ServerData.attributes.port} -nolauncher -world=empty name=Marco "-mod=${modList}"`;
 
-        props.setPlayCommand(playCommand)
+        props.setPlayCommand(playCommand);
+    };
 
-    }
-
+    const CreateSymlinks = () => {
+        fetch(`/createsymlinks`);
+    };
 
     return (
         <div className="server-info">
@@ -66,10 +73,14 @@ const ServerInfo = (props: any) => {
                 </div>
             )}
             <div className="subscribe-button">
-                <button onClick={() => SubscribeToMods()}>Subscribe to all server mods</button>
+                <button onClick={() => InstallMods()}>
+                    Install mods
+                </button>
             </div>
             <div className="unsubscribe-button">
-                <button onClick={() => UnsubscribeFromMods()}>Unsubscribe and delete all server mods</button>
+                <button onClick={() => DeleteMods()}>
+                    Remove mods
+                </button>
             </div>
 
             <div className="play-button">

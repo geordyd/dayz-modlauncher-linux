@@ -13,8 +13,13 @@ function App() {
     const [playCommand, setPlayCommand] = useState("");
 
     useEffect(() => {
-        fetch("/createsymlinks")
-    })
+        const init = async () => {
+            await fetch("/steamcmdinit");
+            fetch("/createsymlinks");
+        };
+
+        init().catch(console.error);
+    });
 
     useEffect(() => {
         let value = filter;
@@ -24,7 +29,7 @@ function App() {
         }
 
         fetch(
-            `https://api.battlemetrics.com/servers?filter[game]=dayz&filter[search]=${value}`
+            `https://api.battlemetrics.com/servers?filter[game]=dayz&filter[search]=${value}&page[size]=20`
         )
             .then((res) => res.json())
             .then((data) => {
@@ -32,16 +37,13 @@ function App() {
             });
     }, [filter]);
 
-
     useEffect(() => {
         if (showInstalledMods) {
-
             fetch("/getinstalledmods")
                 .then((res) => res.json())
                 .then((data) => {
                     setInstalledModsList(data);
                 });
-            
         }
     }, [showInstalledMods]);
 
@@ -57,18 +59,23 @@ function App() {
                 />
             </div>
             <div className="browser">
-                {!showInstalledMods ? (
-                    serverList.data !== undefined &&
-                    serverList.data.map((data: any) => {
-                        return <ServerInfo ServerData={data} setPlayCommand={setPlayCommand}/>;
-                    })
-                ) : (
-                    installedModsList.data !== undefined && 
-                    installedModsList.data.map((data: any) => 
-                        <ModInfo ModData={data} setInstalledModsList={setInstalledModsList} />
-                    )
-                )}
-
+                {!showInstalledMods
+                    ? serverList.data !== undefined &&
+                      serverList.data.map((data: any) => {
+                          return (
+                              <ServerInfo
+                                  ServerData={data}
+                                  setPlayCommand={setPlayCommand}
+                              />
+                          );
+                      })
+                    : installedModsList.data !== undefined &&
+                      installedModsList.data.map((data: any) => (
+                          <ModInfo
+                              ModData={data}
+                              setInstalledModsList={setInstalledModsList}
+                          />
+                      ))}
             </div>
             <div className="console">
                 {playCommand !== "" && <div>{playCommand}</div>}

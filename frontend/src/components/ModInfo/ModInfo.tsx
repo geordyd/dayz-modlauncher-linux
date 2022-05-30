@@ -2,9 +2,7 @@ import "./ModInfo.css";
 
 const ModInfo = (props: any) => {
     const GetInstalledMods = async (modId: any) => {
-        await fetch(`/unsubscribemod/${modId}`);
         await fetch(`/deletemodbyid/${modId}`);
-
         await fetch("/getinstalledmods")
             .then((res) => res.json())
             .then((data) => {
@@ -23,7 +21,7 @@ const ModInfo = (props: any) => {
                 {props.ModData.id}
             </div>
             <button onClick={() => GetInstalledMods(props.ModData.id)}>
-                Unsubscribe and delete mod
+                Remove mod
             </button>
         </div>
     );
